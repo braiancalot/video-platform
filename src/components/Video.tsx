@@ -1,36 +1,85 @@
-import { CaretRight, DiscordLogo, FileArrowDown, Image } from "phosphor-react";
+import { DefaultUi, Player, Youtube } from "@vime/react";
+import { gql, useQuery } from "@apollo/client";
+
+import { CaretRight, FileArrowDown, Image } from "phosphor-react";
 import { Button } from "./Button";
 import { Footer } from "./Footer";
 
-export function Video() {
+import "@vime/core/themes/default.css"
+
+interface VideoProps {
+    lessonSlug: string
+}
+
+interface GetLessonBySlugResponse {
+    lesson: {
+        title: string,
+        videoId: string,
+        description: string,
+        teacher: {
+            bio: string,
+            avatarURL: string,
+            name: string
+        }
+    }
+}
+
+const GET_LESSON_BY_SLUG = gql`
+    query GetLessonBySlug($slug: String) {
+        lesson(where: {slug: $slug}) {
+            title
+            videoId
+            description
+            teacher {
+                bio
+                avatarURL
+                name
+            }
+        }
+    }
+`;
+
+export function Video(props: VideoProps) {
+    const { data } = useQuery<GetLessonBySlugResponse>(GET_LESSON_BY_SLUG, {
+        variables: {
+            slug: props.lessonSlug
+        }
+    });
+
+    if (!data) {
+        return (<div className="flex-1">Carregando</div>);
+    }
     return (
         <div className="flex-1">
             <div className="bg-black flex justify-center">
-                <div className="h-full w-full max-h-[60vh] max-w-[1100px] aspect-video"></div>
+                <div className="h-full w-full max-h-[60vh] max-w-[1100px] aspect-video">
+                    <Player>
+                        <Youtube videoId={data.lesson.videoId} />
+                        <DefaultUi />
+                    </Player>
+                </div>
             </div>
 
             <div className="p-8 max-w-[1100px] mx-auto mb-20">
                 <div className="flex items-start gap-16">
                     <div className="flex-1">
                         <h1 className="font-bold text-2xl">
-                            Aula 01 - Criando o projeto e realizando o setup inicial
+                            {data.lesson.title}
                         </h1>
                         <p className="text-gray-200 mt-4 leading-relaxed">
-                            Nessa aula vamos dar início ao projeto criando a estrutura base da aplicação utilizando ReactJS,
-                            Vite e TailwindCSS. Vamos também realizar o setup do nosso projeto no GraphCMS criando as entidades
-                            da aplicação e integrando a API GraphQL gerada pela plataforma no nosso front-end utilizando Apollo Client.
+                            {data.lesson.description}
                         </p>
                         <div className="flex mt-6 gap-4 items-center">
                             <img
                                 className="w-16 h-16 border-2 border-blue-500 rounded-full"
-                                src="https://avatars.githubusercontent.com/u/41172933?v=4"
+                                src={data.lesson.teacher.avatarURL}
                                 alt="Avatar" />
                             <div className="leading-relaxed">
                                 <strong className="text-2xl font-bold block">
-                                    Braian Calot
+                                    {data.lesson.teacher.name}
                                 </strong>
                                 <p className="text-gray-200 text-sm block">
-                                    Web Development
+                                    {data.lesson.teacher.bio}
                                 </p>
                             </div>
                         </div>
