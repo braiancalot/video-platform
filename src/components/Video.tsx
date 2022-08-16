@@ -43,10 +43,11 @@ export function Video(props: VideoProps) {
     const { data } = useQuery<GetLessonBySlugResponse>(GET_LESSON_BY_SLUG, {
         variables: {
             slug: props.lessonSlug
-        }
+        },
+        fetchPolicy: "no-cache",
     });
 
-    if (!data) {
+    if (!data || !data.lesson) {
         return (<div className="flex-1">Carregando</div>);
     }
     return (
