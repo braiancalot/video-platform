@@ -1,46 +1,18 @@
 import { DefaultUi, Player, Youtube } from "@vime/react";
-import { gql, useQuery } from "@apollo/client";
 
 import { CaretRight, FileArrowDown, Image } from "phosphor-react";
 import { Button } from "./Button";
 import { Footer } from "./Footer";
 
 import "@vime/core/themes/default.css"
+import { useGetLessonBySlugQuery } from "../graphql/generated";
 
 interface VideoProps {
     lessonSlug: string
 }
 
-interface GetLessonBySlugResponse {
-    lesson: {
-        title: string,
-        videoId: string,
-        description: string,
-        teacher: {
-            bio: string,
-            avatarURL: string,
-            name: string
-        }
-    }
-}
-
-const GET_LESSON_BY_SLUG = gql`
-    query GetLessonBySlug($slug: String) {
-        lesson(where: {slug: $slug}) {
-            title
-            videoId
-            description
-            teacher {
-                bio
-                avatarURL
-                name
-            }
-        }
-    }
-`;
-
 export function Video(props: VideoProps) {
-    const { data } = useQuery<GetLessonBySlugResponse>(GET_LESSON_BY_SLUG, {
+    const { data } = useGetLessonBySlugQuery({
         variables: {
             slug: props.lessonSlug
         },
@@ -70,7 +42,7 @@ export function Video(props: VideoProps) {
                         <p className="text-gray-200 mt-4 leading-relaxed">
                             {data.lesson.description}
                         </p>
-                        <div className="flex mt-6 gap-4 items-center">
+                        {data.lesson.teacher && (<div className="flex mt-6 gap-4 items-center">
                             <img
                                 className="w-16 h-16 border-2 border-blue-500 rounded-full"
                                 src={data.lesson.teacher.avatarURL}
@@ -83,7 +55,8 @@ export function Video(props: VideoProps) {
                                     {data.lesson.teacher.bio}
                                 </p>
                             </div>
-                        </div>
+                        </div>)}
+
                     </div>
                     <div className="flex flex-col gap-4">
                         <Button variant="primary" />
